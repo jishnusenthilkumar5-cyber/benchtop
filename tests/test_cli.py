@@ -20,8 +20,10 @@ def test_help_lists_every_verb():
 
 
 def test_stubs_report_not_implemented():
-    # `collect` (WI-1) and `dash` (WI-3) are implemented; see their own tests.
-    for verb in ("train", "eval"):
+    # This list shrinks as work items land. `collect` (WI-1), `dash` (WI-3) and
+    # `eval` (WI-2) are implemented and covered by their own test modules;
+    # `train` (WI-4) is still a Phase 0 stub.
+    for verb in ("train",):
         result = runner.invoke(app, [verb])
         assert result.exit_code == 0
         assert "not implemented" in result.stdout
