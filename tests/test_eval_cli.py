@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 from typer.testing import CliRunner
 
@@ -11,10 +13,13 @@ runner = CliRunner()
 
 
 def test_eval_help_documents_the_selectors():
-    result = runner.invoke(app, ["eval", "--help"])
+    # Rich wraps and colours help text to the terminal width, which differs
+    # between a local shell and CI; pin the width and strip the escapes.
+    result = runner.invoke(app, ["eval", "--help"], env={"COLUMNS": "200", "NO_COLOR": "1"})
     assert result.exit_code == 0
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", result.stdout)
     for token in ("--suite", "--policy", "random", "lerobot"):
-        assert token in result.stdout
+        assert token in plain
 
 
 def test_missing_suite_exits_nonzero(tmp_path):
