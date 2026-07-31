@@ -16,3 +16,6 @@ datasets/
 outputs/
 
 .DS_Store
+
+# The dashboard fixture run is committed on purpose (see tests/fixtures).
+!tests/fixtures/runs/

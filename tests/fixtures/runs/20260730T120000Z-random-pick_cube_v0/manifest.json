@@ -1,0 +1,33 @@
+{
+  "run_id": "20260730T120000Z-random-pick_cube_v0",
+  "task": "pick_cube-v0",
+  "policy": {
+    "spec": "random",
+    "type": "random"
+  },
+  "suite": {
+    "name": "pick_cube_v0",
+    "task": "pick_cube-v0",
+    "max_steps": 500,
+    "video": true,
+    "seeds": [
+      10000,
+      10001,
+      10002,
+      10003,
+      10004,
+      10005
+    ]
+  },
+  "git_sha": "0000000000000000000000000000000000000000",
+  "benchtop_version": "0.1.0",
+  "platform": "Linux-x86_64-py3.12",
+  "started_at": "2026-07-30T12:00:00+00:00",
+  "finished_at": "2026-07-30T12:03:20+00:00",
+  "duration_s": 200.0,
+  "schema_version": 1,
+  "extra": {
+    "fixture": true,
+    "video": true
+  }
+}

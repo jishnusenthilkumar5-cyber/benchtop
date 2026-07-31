@@ -1,0 +1,11 @@
+{
+  "episodes": 6,
+  "successes": 1,
+  "success_rate": 0.16666666666666666,
+  "success_rate_ci_low": 0.030053,
+  "success_rate_ci_high": 0.563503,
+  "lift_rate": 0.5,
+  "mean_steps_to_success": 223.0,
+  "median_steps_to_success": 223.0,
+  "mean_final_distance": 0.183167
+}
