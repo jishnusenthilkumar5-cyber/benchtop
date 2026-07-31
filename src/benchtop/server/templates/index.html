@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ci_bar %}
+{% block title %}runs · benchtop{% endblock %}
+{% block content %}
+<h1>Runs</h1>
+{% if not runs %}
+  <p class="empty">No runs found in <code>{{ runs_dir }}</code>. Produce one with
+    <code>benchtop eval</code>, or point <code>benchtop dash --runs-dir</code> elsewhere.</p>
+{% else %}
+<table class="grid runs">
+  <thead>
+    <tr><th>run</th><th>policy</th><th>task</th><th>success rate (95% CI)</th><th>finished</th></tr>
+  </thead>
+  <tbody>
+  {% for run in runs %}
+    <tr>
+      <td><a class="mono" href="/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
+      <td>{{ run.manifest.policy.spec }}</td>
+      <td class="mono">{{ run.manifest.task }}</td>
+      <td class="ci-cell">{{ ci_bar(run.metrics) }}</td>
+      <td class="mono">{{ run.manifest.finished_at }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if runs|length > 1 %}
+  <p><a href="/compare?a={{ runs[0].run_id }}&b={{ runs[1].run_id }}">Compare the two newest runs →</a></p>
+{% endif %}
+{% endif %}
+{% endblock %}
