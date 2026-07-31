@@ -19,14 +19,6 @@ def test_help_lists_every_verb():
         assert verb in result.stdout
 
 
-def test_stubs_report_not_implemented():
-    # `collect` (WI-1), `dash` (WI-3) and `train` (WI-4) are implemented; see their own tests.
-    for verb in ("eval",):
-        result = runner.invoke(app, [verb])
-        assert result.exit_code == 0
-        assert "not implemented" in result.stdout
-
-
 def test_suite_uses_held_out_seeds():
     suite = yaml.safe_load(SUITE.read_text())
     assert suite["task"] == TASK_ID

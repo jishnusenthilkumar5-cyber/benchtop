@@ -108,6 +108,22 @@ def test_rejects_a_checkpoint_that_disagrees_with_the_frozen_spec(tmp_path):
         LeRobotACTPolicy(directory)
 
 
+def test_eval_registry_resolves_a_lerobot_selector(checkpoint):
+    """`--policy lerobot:<path>` reaches this adapter without WI-2 knowing it exists."""
+    from benchtop.envs.pick_cube import PickCubeV0
+    from benchtop.eval.registry import describe, resolve_policy
+
+    spec = f"lerobot:{checkpoint}"
+    assert describe(spec).type == "lerobot"
+
+    env = PickCubeV0()
+    try:
+        resolved = resolve_policy(spec, env, seed=10_000)
+    finally:
+        env.close()
+    assert isinstance(resolved, LeRobotACTPolicy)
+
+
 def test_twenty_step_rollout_in_pick_cube(policy):
     from benchtop.envs.pick_cube import PickCubeV0
 

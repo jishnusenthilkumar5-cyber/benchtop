@@ -157,6 +157,11 @@ class LeRobotACTPolicy:
         return action
 
 
+#: The name the eval policy registry resolves `lerobot:<path>` to. ACT is the
+#: only lerobot policy benchtop trains in v0, so the two are the same class.
+LeRobotPolicy = LeRobotACTPolicy
+
+
 def build_act_config(**overrides: Any) -> ACTConfig:
     """The state-only ACT configuration benchtop trains and evaluates.
 

@@ -7,6 +7,10 @@ benchtop must stay independent of it.
 
 from __future__ import annotations
 
-from benchtop.adapters.lerobot_policy import LeRobotACTPolicy, resolve_checkpoint_dir
+from benchtop.adapters.lerobot_policy import (
+    LeRobotACTPolicy,
+    LeRobotPolicy,
+    resolve_checkpoint_dir,
+)
 
-__all__ = ["LeRobotACTPolicy", "resolve_checkpoint_dir"]
+__all__ = ["LeRobotACTPolicy", "LeRobotPolicy", "resolve_checkpoint_dir"]
