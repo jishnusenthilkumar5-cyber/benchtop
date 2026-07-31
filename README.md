@@ -6,8 +6,11 @@ Bring a policy checkpoint, get a scorecard: success rate with a confidence
 interval, per-episode records, and rollout videos — against a versioned task
 on held-out seeds.
 
-**Status: pre-v0, under construction.** The plan of record is
+**Status: v0.** The full loop below — collect, train, eval, dash — runs end
+to end on CPU. The plan of record is
 [`.devin/plans/benchtop-v0.md`](.devin/plans/benchtop-v0.md).
+
+![ACT policy rollout on a held-out seed](docs/act_rollout.gif)
 
 ## Why
 
@@ -22,14 +25,49 @@ every run records the git sha and resolved config that produced it, and
 success rates come with Wilson intervals so you can see when a difference
 isn't one.
 
-## Planned interface
+## Quickstart
 
 ```bash
-benchtop collect --episodes 100     # scripted expert -> demonstration dataset
-benchtop train   --dataset <path>   # train a policy on those demos
-benchtop eval    --suite suites/pick_cube_v0.yaml --policy lerobot:<ckpt>
-benchtop dash                       # local dashboard: browse and compare runs
+uv sync --all-extras
+
+# 1. Scripted expert -> demonstration dataset (seeds 0-99, ~2 min)
+uv run benchtop collect --episodes 100 --out datasets/pick_cube_v0_expert
+
+# 2. Train state-only ACT on those demos (CPU; ~4.5 h at batch 64 / 30k steps)
+uv run benchtop train --dataset datasets/pick_cube_v0_expert \
+    --out outputs/train/act_pick_cube_v0
+
+# 3. Evaluate on the held-out suite (seeds 10000+, never trained on)
+uv run benchtop eval --suite suites/pick_cube_v0.yaml \
+    --policy lerobot:outputs/train/act_pick_cube_v0/checkpoints/last/pretrained_model
+uv run benchtop eval --policy expert
+uv run benchtop eval --policy random
+
+# 4. Browse and compare runs in the local dashboard
+uv run benchtop dash --runs-dir runs
 ```
+
+Or skip training: download the trained checkpoint from the
+[GitHub release](https://github.com/jishnusenthilkumar5-cyber/benchtop/releases),
+unpack it, and pass the directory as `--policy lerobot:<path>`.
+
+## v0 results
+
+Measured on the held-out suite (`suites/pick_cube_v0.yaml`: 100 episodes,
+seeds 10000–10099; collection/training used seeds 0–99). Success rates carry
+95% Wilson intervals.
+
+| Policy | Success | 95% CI | Lift rate | Median steps to success |
+|---|---|---|---|---|
+| ACT (state-only, 30k steps, CPU) | **95/100 = 95%** | [88.8%, 97.8%] | 100% | 132 |
+| Scripted expert | 97/100 = 97% | [91.5%, 99.0%] | 100% | 131 |
+| Random | 0/100 = 0% | [0.0%, 3.7%] | 3% | — |
+
+Training detail: 98/100 expert demos kept (2 expert failures dropped),
+LeRobot ACT with `observation.state` + `observation.environment_state`
+(no camera input), batch 64, 30k steps, ~4.5 h on an 8-core CPU VM. A
+mid-training checkpoint at 15k steps scored 93% [86.3%, 96.6%]; the final
+30k checkpoint is the released one.
 
 ## v0 scope
 
