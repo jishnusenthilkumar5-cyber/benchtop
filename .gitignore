@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Generated output. The one exception is tests/fixtures/runs/, which is
+# committed so the dashboard can be developed without running an eval.
+runs/
+datasets/
+outputs/
+
+.DS_Store

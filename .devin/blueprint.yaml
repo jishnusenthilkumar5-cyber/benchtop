@@ -1,0 +1,96 @@
+initialize:
+  - name: "Install Python 3.12"
+    uses: github.com/actions/setup-python@v5
+    with:
+      python-version: "3.12"
+
+  - name: "System packages for headless MuJoCo rendering"
+    run: |
+      sudo apt-get update -qq
+      sudo apt-get install -y -qq libegl1 libosmesa6 libgl1 ffmpeg
+
+  - name: "Install uv and persist PATH + render env"
+    run: |
+      curl -LsSf https://astral.sh/uv/install.sh | sh
+      echo 'PATH=$HOME/.local/bin:$PATH' >> $ENVRC
+      echo 'MUJOCO_GL=egl' >> $ENVRC
+
+maintenance:
+  - name: "Sync the environment"
+    run: |
+      cd ~/repos/benchtop
+      uv sync --all-extras
+
+  - name: "Verify the benchtop CLI resolves"
+    run: |
+      cd ~/repos/benchtop
+      uv run benchtop --help >/dev/null
+
+knowledge:
+  - name: test
+    contents: |
+      uv run pytest
+
+      Markers: `slow` (policy rollouts over many seeds) and `render` (needs a
+      GL context) are EXCLUDED from the default run. Run them explicitly:
+        uv run pytest -m slow
+        uv run pytest -m render
+
+      If a render test fails with a GL/EGL error, MUJOCO_GL is not set. It is
+      exported as `egl` by the blueprint; `osmesa` is the software fallback.
+      On macOS neither is needed.
+
+  - name: build
+    contents: |
+      uv build
+
+      Packaging is uv_build via pyproject.toml, src-layout under src/benchtop.
+      There is no separate build step for the dashboard — it is FastAPI +
+      Jinja + vanilla JS by design. Do NOT introduce a node toolchain.
+
+  - name: lint
+    contents: |
+      uv run ruff check && uv run ruff format --check
+
+      ruff is the only linter. Do not add black, flake8, or mypy as part of
+      an unrelated change.
+
+  - name: layout
+    contents: |
+      src/benchtop/core/       frozen obs/action spec + artifact schemas
+      src/benchtop/envs/       PickCubeV0 + assets/*.xml
+      src/benchtop/policies/   Policy protocol, random/noop, scripted expert
+      src/benchtop/eval/       episode runner, metrics, run-artifact IO
+      src/benchtop/adapters/   LeRobot checkpoint -> Policy
+      src/benchtop/train/      training entrypoint wrapping lerobot-train
+      src/benchtop/server/     FastAPI dashboard
+      src/benchtop/commands/   one typer sub-app per CLI verb
+      suites/                  eval suite YAML (seed lists live here)
+      vendor/                  Franka Panda model, BSD-3 (see VENDORING.md)
+      tests/fixtures/runs/     committed sample run; dashboard builds on this
+
+      Generated output — runs/, datasets/, outputs/ — is gitignored. Never
+      commit a run directory except the tests/fixtures/ one.
+
+  - name: conventions
+    contents: |
+      Python >= 3.12. The plan of record is .devin/plans/benchtop-v0.md; read
+      the work item you were assigned and stay inside the files it lists.
+
+      Three rules that keep parallel sessions from colliding:
+
+      1. The observation/action spec and run-artifact schema in core/types.py
+         are FROZEN. If your work item seems to need a change there, stop and
+         say so — do not edit it.
+      2. Do not edit pyproject.toml. All dependencies are declared up front.
+         A missing dependency is a flag-and-stop, not a quiet `uv add`.
+      3. `lerobot` imports are quarantined in adapters/ and data/ only. It is
+         pinned deliberately; its API churns between minor versions.
+
+      Task versions are immutable: the semantics of a released task (e.g.
+      pick_cube-v0) never change. Behavior changes mean a new version, because
+      scores across versions must never be silently comparable.
+
+      Evaluation hygiene: demo-collection seeds (0-99) and evaluation seeds
+      (10000+) are disjoint and must stay that way. Never evaluate on a seed
+      that was trained on.
