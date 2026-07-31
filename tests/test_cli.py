@@ -20,7 +20,8 @@ def test_help_lists_every_verb():
 
 
 def test_stubs_report_not_implemented():
-    for verb in ("collect", "eval", "dash"):
+    # `collect` (WI-1) and `train` (WI-4) are implemented; they have their own tests.
+    for verb in ("eval", "dash"):
         result = runner.invoke(app, [verb])
         assert result.exit_code == 0
         assert "not implemented" in result.stdout
