@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ci_bar, metric_cards, episodes_table %}
+{% block title %}compare · benchtop{% endblock %}
+{% block content %}
+<h1>Compare</h1>
+
+<form class="compare-picker" method="get" action="/compare">
+  <label>A
+    <select name="a">
+      <option value="">—</option>
+      {% for r in all_runs %}
+      <option value="{{ r.run_id }}" {% if left and r.run_id == left.run_id %}selected{% endif %}>{{ r.run_id }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>B
+    <select name="b">
+      <option value="">—</option>
+      {% for r in all_runs %}
+      <option value="{{ r.run_id }}" {% if right and r.run_id == right.run_id %}selected{% endif %}>{{ r.run_id }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Compare</button>
+</form>
+
+{% if not left or not right %}
+  <p class="empty">Pick two runs to compare their success rates and confidence intervals.</p>
+{% else %}
+  {% set delta = right.metrics.success_rate - left.metrics.success_rate %}
+  <div class="verdict {{ 'inconclusive' if overlap else 'separated' }}">
+    {% if overlap %}
+      <b>Not a distinguishable difference.</b> The 95% intervals overlap, so at
+      {{ left.metrics.episodes }} and {{ right.metrics.episodes }} episodes this
+      {{ delta|abs|pct }} gap is consistent with the two policies being equally good.
+    {% else %}
+      <b>Difference is separated at 95%.</b> The intervals do not overlap:
+      B is {{ delta|abs|pct }} {{ 'higher' if delta > 0 else 'lower' }} than A.
+    {% endif %}
+  </div>
+
+  <div class="ci-compare">
+    <div class="ci-row"><span class="ci-name mono">A · {{ left.run_id }}</span>{{ ci_bar(left.metrics, "a") }}</div>
+    <div class="ci-row"><span class="ci-name mono">B · {{ right.run_id }}</span>{{ ci_bar(right.metrics, "b") }}</div>
+    <div class="ci-axis"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+  </div>
+
+  <table class="grid side-by-side">
+    <thead><tr><th>metric</th><th>A · {{ left.manifest.policy.spec }}</th><th>B · {{ right.manifest.policy.spec }}</th></tr></thead>
+    <tbody>
+      <tr><td>run</td>
+        <td><a class="mono" href="/runs/{{ left.run_id }}">{{ left.run_id }}</a></td>
+        <td><a class="mono" href="/runs/{{ right.run_id }}">{{ right.run_id }}</a></td></tr>
+      <tr><td>task</td><td class="mono">{{ left.manifest.task }}</td><td class="mono">{{ right.manifest.task }}</td></tr>
+      <tr><td>episodes</td><td class="mono">{{ left.metrics.episodes }}</td><td class="mono">{{ right.metrics.episodes }}</td></tr>
+      <tr><td>success rate</td><td class="mono">{{ left.metrics.success_rate|pct }}</td><td class="mono">{{ right.metrics.success_rate|pct }}</td></tr>
+      <tr><td>95% CI</td>
+        <td class="mono">{{ left.metrics.success_rate_ci_low|pct }} – {{ left.metrics.success_rate_ci_high|pct }}</td>
+        <td class="mono">{{ right.metrics.success_rate_ci_low|pct }} – {{ right.metrics.success_rate_ci_high|pct }}</td></tr>
+      <tr><td>lift rate</td><td class="mono">{{ left.metrics.lift_rate|pct }}</td><td class="mono">{{ right.metrics.lift_rate|pct }}</td></tr>
+      <tr><td>mean steps to success</td><td class="mono">{{ left.metrics.mean_steps_to_success|num(1) }}</td><td class="mono">{{ right.metrics.mean_steps_to_success|num(1) }}</td></tr>
+      <tr><td>mean final distance (m)</td><td class="mono">{{ left.metrics.mean_final_distance|num(3) }}</td><td class="mono">{{ right.metrics.mean_final_distance|num(3) }}</td></tr>
+      <tr><td>git sha</td><td class="mono">{{ left.manifest.git_sha[:12] }}</td><td class="mono">{{ right.manifest.git_sha[:12] }}</td></tr>
+      <tr><td>finished</td><td class="mono">{{ left.manifest.finished_at }}</td><td class="mono">{{ right.manifest.finished_at }}</td></tr>
+    </tbody>
+  </table>
+
+  {% if left.manifest.task != right.manifest.task %}
+  <p class="warn">These runs are on different task versions — their scores are not comparable.</p>
+  {% endif %}
+{% endif %}
+{% endblock %}
