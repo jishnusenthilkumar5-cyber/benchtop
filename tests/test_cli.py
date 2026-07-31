@@ -19,16 +19,6 @@ def test_help_lists_every_verb():
         assert verb in result.stdout
 
 
-def test_stubs_report_not_implemented():
-    # This list shrinks as work items land. `collect` (WI-1), `dash` (WI-3) and
-    # `eval` (WI-2) are implemented and covered by their own test modules;
-    # `train` (WI-4) is still a Phase 0 stub.
-    for verb in ("train",):
-        result = runner.invoke(app, [verb])
-        assert result.exit_code == 0
-        assert "not implemented" in result.stdout
-
-
 def test_suite_uses_held_out_seeds():
     suite = yaml.safe_load(SUITE.read_text())
     assert suite["task"] == TASK_ID
