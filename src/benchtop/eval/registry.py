@@ -55,10 +55,13 @@ def _build_noop(env: gym.Env, arg: str | None, seed: int | None) -> Policy:
 
 def _build_expert(env: gym.Env, arg: str | None, seed: int | None) -> Policy:
     try:
-        from benchtop.policies.expert import ScriptedExpertPolicy
-    except ImportError as exc:  # pragma: no cover - depends on WI-1 landing
+        from benchtop.policies.expert import ExpertPolicy
+    except ImportError as exc:  # pragma: no cover - only when the module is absent
         raise PolicyUnavailableError("the scripted expert is not available in this build") from exc
-    return ScriptedExpertPolicy(env)
+    from benchtop.envs.pick_cube import PickCubeV0
+
+    # Reuse the environment's model rather than loading a second copy.
+    return ExpertPolicy(env.model if isinstance(env, PickCubeV0) else None)
 
 
 def _build_lerobot(env: gym.Env, arg: str | None, seed: int | None) -> Policy:

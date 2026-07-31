@@ -20,8 +20,9 @@ def test_help_lists_every_verb():
 
 
 def test_stubs_report_not_implemented():
-    # `eval` is implemented (WI-2); the rest are still Phase 0 stubs.
-    for verb in ("collect", "train", "dash"):
+    # `collect` (WI-1) and `eval` (WI-2) are implemented and tested in
+    # test_collect.py and test_eval_cli.py; the rest are still Phase 0 stubs.
+    for verb in ("train", "dash"):
         result = runner.invoke(app, [verb])
         assert result.exit_code == 0
         assert "not implemented" in result.stdout
