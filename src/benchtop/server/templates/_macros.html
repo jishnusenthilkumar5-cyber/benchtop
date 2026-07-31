@@ -1,0 +1,58 @@
+{% macro ci_bar(metrics, tone="") %}
+{% set low = 100 * metrics.success_rate_ci_low %}
+{% set high = 100 * metrics.success_rate_ci_high %}
+{% set point = 100 * metrics.success_rate %}
+<div class="ci">
+  <div class="ci-track {{ tone }}">
+    <div class="ci-span" style="left: {{ '%.2f'|format(low) }}%; width: {{ '%.2f'|format(high - low) }}%"></div>
+    <div class="ci-point" style="left: {{ '%.2f'|format(point) }}%"></div>
+  </div>
+  <div class="ci-label">
+    <strong>{{ metrics.success_rate|pct }}</strong>
+    <span class="muted">95% CI {{ metrics.success_rate_ci_low|pct }} – {{ metrics.success_rate_ci_high|pct }}</span>
+    <span class="muted">n={{ metrics.episodes }}</span>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro metric_cards(metrics) %}
+<div class="cards">
+  <div class="card"><span class="k">success rate</span><span class="v">{{ metrics.success_rate|pct }}</span>
+    <span class="sub">{{ metrics.successes }}/{{ metrics.episodes }} episodes</span></div>
+  <div class="card"><span class="k">95% Wilson CI</span>
+    <span class="v small">{{ metrics.success_rate_ci_low|pct }} – {{ metrics.success_rate_ci_high|pct }}</span>
+    <span class="sub">width {{ ((metrics.success_rate_ci_high - metrics.success_rate_ci_low))|pct }}</span></div>
+  <div class="card"><span class="k">lift rate</span><span class="v">{{ metrics.lift_rate|pct }}</span>
+    <span class="sub">cube left the table</span></div>
+  <div class="card"><span class="k">steps to success</span>
+    <span class="v">{{ metrics.mean_steps_to_success|num(1) }}</span>
+    <span class="sub">median {{ metrics.median_steps_to_success|num(1) }} (successes only)</span></div>
+  <div class="card"><span class="k">mean final distance</span>
+    <span class="v">{{ metrics.mean_final_distance|num(3) }}<span class="unit">m</span></span>
+    <span class="sub">cube → target, XY</span></div>
+</div>
+{% endmacro %}
+
+{% macro episodes_table(run) %}
+<table class="grid">
+  <thead>
+    <tr><th>seed</th><th>success</th><th>lifted</th><th>steps</th>
+        <th>time to success</th><th>final distance (m)</th><th>video</th></tr>
+  </thead>
+  <tbody>
+  {% for ep in run.episodes %}
+    <tr class="{{ 'ok' if ep.success else 'no' }}">
+      <td class="mono">{{ ep.seed }}</td>
+      <td>{{ '✔' if ep.success else '✘' }}</td>
+      <td>{{ '✔' if ep.lifted else '✘' }}</td>
+      <td class="mono">{{ ep.steps }}</td>
+      <td class="mono">{{ ep.time_to_success if ep.time_to_success is not none else '—' }}</td>
+      <td class="mono">{{ ep.final_distance|num(3) }}</td>
+      <td>{% if ep.video %}<a href="/runs/{{ run.run_id }}/videos/{{ ep.video }}">{{ ep.video }}</a>{% else %}—{% endif %}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">no episodes recorded</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}

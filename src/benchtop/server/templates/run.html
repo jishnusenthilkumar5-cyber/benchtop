@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ci_bar, metric_cards, episodes_table %}
+{% block title %}{{ run.run_id }} · benchtop{% endblock %}
+{% block content %}
+<h1 class="mono">{{ run.run_id }}</h1>
+<p class="meta">
+  <span><b>policy</b> {{ run.manifest.policy.spec }} ({{ run.manifest.policy.type }})</span>
+  <span><b>task</b> {{ run.manifest.task }}</span>
+  <span><b>git</b> <span class="mono">{{ run.manifest.git_sha[:12] }}</span></span>
+  <span><b>benchtop</b> {{ run.manifest.benchtop_version }}</span>
+  <span><b>platform</b> {{ run.manifest.platform }}</span>
+  <span><b>duration</b> {{ run.manifest.duration_s|num(1) }}s</span>
+  <span><b>finished</b> {{ run.manifest.finished_at }}</span>
+</p>
+{% if run.manifest.policy.checkpoint_sha256 %}
+<p class="meta"><span><b>checkpoint</b> <span class="mono">{{ run.manifest.policy.checkpoint_path }}</span></span>
+  <span class="mono muted">sha256:{{ run.manifest.policy.checkpoint_sha256[:16] }}</span></p>
+{% endif %}
+
+{{ metric_cards(run.metrics) }}
+{{ ci_bar(run.metrics) }}
+
+<h2>Rollouts</h2>
+{% set videos = run.video_names() %}
+{% if videos %}
+<div class="videos">
+  {% for name in videos %}
+  <figure>
+    <video src="/runs/{{ run.run_id }}/videos/{{ name }}" controls muted loop preload="metadata"></video>
+    <figcaption class="mono">{{ name }}</figcaption>
+  </figure>
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted">No videos were captured for this run.</p>
+{% endif %}
+
+<h2>Episodes</h2>
+{{ episodes_table(run) }}
+
+<h2>Resolved suite</h2>
+<pre class="mono json">{{ run.manifest.suite|tojson(indent=2) }}</pre>
+
+<p><a href="/compare?a={{ run.run_id }}">Compare this run with another →</a>
+  · <a href="/api/runs/{{ run.run_id }}">JSON</a></p>
+{% endblock %}
