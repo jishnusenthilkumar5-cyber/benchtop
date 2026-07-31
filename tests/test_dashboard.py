@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 import shutil
 
 import pytest
@@ -169,9 +170,10 @@ def test_intervals_overlap_helper(two_run_dir: pathlib.Path):
 
 
 def test_dash_help_documents_runs_dir():
-    result = CliRunner().invoke(cli_app, ["dash", "--help"])
+    # Narrow terminals wrap and colour the help text, so match loosely.
+    result = CliRunner().invoke(cli_app, ["dash", "--help"], env={"TERM": "dumb", "COLUMNS": "200"})
     assert result.exit_code == 0
-    assert "--runs-dir" in result.stdout
+    assert "runs-dir" in re.sub(r"\x1b\[[0-9;]*m", "", result.stdout)
 
 
 def test_dash_fails_cleanly_on_missing_runs_dir(tmp_path: pathlib.Path):
