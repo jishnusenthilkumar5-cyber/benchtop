@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,13 @@ from benchtop.train.config import TrainConfig, last_checkpoint_config
 from benchtop.train.runner import resolve_resume, run_training, train_command
 
 runner = CliRunner()
+
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _unwrap(output: str) -> str:
+    """Colour codes and box drawing removed, line wrapping undone."""
+    return " ".join(_ANSI.sub("", output).replace("│", " ").split())
 
 
 def make_config(tmp_path: Path, **kwargs) -> TrainConfig:
@@ -82,4 +90,6 @@ def test_cli_dry_run_prints_the_command(tmp_path):
 def test_cli_requires_a_dataset_unless_resuming():
     result = runner.invoke(app, ["train"])
     assert result.exit_code != 0
-    assert "--dataset is required" in result.output
+    # Typer renders errors in a box that wraps to the terminal width, which is
+    # narrower on CI than locally.
+    assert "--dataset is required" in _unwrap(result.output)
