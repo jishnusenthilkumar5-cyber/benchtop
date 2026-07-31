@@ -1,0 +1,6 @@
+{"seed": 10000, "success": false, "lifted": true, "steps": 500, "final_distance": 0.184, "video": "ep000.mp4"}
+{"seed": 10001, "success": true, "lifted": true, "steps": 233, "time_to_success": 223, "final_distance": 0.011, "video": "ep001.mp4"}
+{"seed": 10002, "success": false, "lifted": false, "steps": 500, "final_distance": 0.262, "video": "ep002.mp4"}
+{"seed": 10003, "success": false, "lifted": true, "steps": 500, "final_distance": 0.097, "video": "ep003.mp4"}
+{"seed": 10004, "success": false, "lifted": false, "steps": 500, "final_distance": 0.301, "video": "ep004.mp4"}
+{"seed": 10005, "success": false, "lifted": false, "steps": 500, "final_distance": 0.244, "video": "ep005.mp4"}

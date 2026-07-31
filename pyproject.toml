@@ -1,17 +1,63 @@
 [project]
 name = "benchtop"
 version = "0.1.0"
-description = "Add your description here"
+description = "Reproducible evaluation for robot manipulation policies, in simulation."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "mujoco>=3.11.0",
-    "numpy>=2.5.1",
+    # Upper bound comes from lerobot 0.6.0 (numpy>=2.0,<2.3).
+    "numpy>=2.0,<2.3",
+    "gymnasium>=1.0",
+    "typer>=0.15",
+    "pyyaml>=6.0",
+    "imageio[ffmpeg]>=2.36",
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
+    "jinja2>=3.1",
+    "lerobot[training]==0.6.0",
+    # Declared explicitly (lerobot 0.6.0 requires >=2.7) so the CPU-only index
+    # source below applies -- uv sources only bind first-party requirements.
+    "torch>=2.7",
+    "torchvision",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.9",
+]
+
+# There is no GPU anywhere in v0: pull CPU-only torch wheels on Linux instead of
+# the default PyPI wheels, which drag in ~3GB of CUDA. macOS wheels are CPU-only
+# on PyPI already, so they resolve normally.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
 [project.scripts]
-benchtop = "benchtop:main"
+benchtop = "benchtop.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.12.0,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not slow and not render'"
+markers = [
+    "slow: long-running tests (policy rollouts over many seeds)",
+    "render: requires a GL context for offscreen rendering",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["vendor"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

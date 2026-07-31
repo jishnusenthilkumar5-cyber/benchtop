@@ -1,0 +1,11 @@
+# Evaluation suite for pick_cube-v0.
+#
+# Seeds are held out by protocol: demo collection uses 0-99, evaluation uses
+# 10000+. Never evaluate on a seed that was collected or trained on.
+name: pick_cube_v0
+task: pick_cube-v0
+max_steps: 500
+video: true
+# 100 held-out seeds: 10000..10099.
+seed_start: 10000
+episodes: 100
