@@ -206,6 +206,7 @@ flag, don't edit.
    real learned checkpoint.
 
 Session budget: 1 (Phase 0) + 4 parallel (Phase 1) + 1 (Phase 2) = 6 sessions.
+All cloud sessions spawn with `devin_mode: "ultra"` (user standing preference).
 
 ## Risks
 
